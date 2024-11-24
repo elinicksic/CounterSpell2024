@@ -14,9 +14,6 @@ public class LightCaster : MonoBehaviour
     void Start()
     {
         // Create a new mesh for the light
-        lightMeshObject.transform.SetParent(transform);
-        lightMeshObject.AddComponent<MeshFilter>();
-        lightMeshObject.AddComponent<MeshRenderer>().material = new Material(Shader.Find("Sprites/Default"));
         lightMesh = lightMeshObject.GetComponent<MeshFilter>().mesh;
     }
 

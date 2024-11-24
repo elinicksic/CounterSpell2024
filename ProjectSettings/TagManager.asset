@@ -44,11 +44,11 @@ TagManager:
   - name: Walls
     uniqueID: 1249469061
     locked: 0
-  - name: Lighting
-    uniqueID: 1263717149
-    locked: 0
   - name: Player
     uniqueID: 1359858281
+    locked: 0
+  - name: Lighting
+    uniqueID: 1263717149
     locked: 0
   m_RenderingLayers:
   - Default
