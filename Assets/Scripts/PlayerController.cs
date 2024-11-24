@@ -4,39 +4,47 @@ using TMPro; // For TextMeshPro
 
 public class PlayerController : MonoBehaviour
 {
+
     public float moveSpeed = 5f;
     public GameObject ghostCharacter;
     public float delayTime = 5f;
-    
+
     // UI elements for dialogue
     public GameObject dialoguePanel; // Assign the panel GameObject
     public TMP_Text dialogueText; // Changed to TMP_Text
-    public string catchMessage = "Got you!";
-    
+    public string catchMessage = "You're so sus!!!";
+
+
     // Sprites for both characters
     public Sprite[] blueSprites;
     public Sprite[] redSprites;
-    
+
     public float spriteChangeTime = 0.1f;
     private float spriteTimer = 0f;
     private int currentSpriteIndex = 0;
-    
+
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private SpriteRenderer ghostSprite;
     private bool isGamePaused = false;
     private float gameStartTime;
     private float graceTime = 5f; // 5 seconds grace period
-    
+
+    public AudioClip clip;
+
+    private AudioSource source;
+
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     private List<CharacterState> positionHistory = new List<CharacterState>();
-    
+
     private class CharacterState
     {
         public Vector2 Position;
         public bool IsFacingLeft;
         public int SpriteIndex;
         public float TimeStamp;
-        
+
         public CharacterState(Vector2 pos, bool facingLeft, int spriteIndex, float time)
         {
             Position = pos;
@@ -48,15 +56,17 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        source = GetComponent<AudioSource>();
+
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         gameStartTime = Time.time;
-        
+
         if (ghostCharacter != null)
         {
             ghostSprite = ghostCharacter.GetComponent<SpriteRenderer>();
         }
-        
+
         // Explicitly hide dialogue panel at start
         if (dialoguePanel != null)
         {
@@ -67,7 +77,7 @@ public class PlayerController : MonoBehaviour
         {
             Debug.LogWarning("Dialogue Panel is not assigned!"); // Warning if panel is missing
         }
-        
+
         // Set initial sprites
         if (blueSprites != null && blueSprites.Length > 0)
             spriteRenderer.sprite = blueSprites[0];
@@ -86,13 +96,13 @@ public class PlayerController : MonoBehaviour
         // Handle movement
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
-        
+
         Vector2 movement = new Vector2(horizontal, vertical);
         if (movement.magnitude > 1f)
             movement.Normalize();
-            
+
         rb.linearVelocity = movement * moveSpeed;
-        
+
         // Handle sprite animation
         if (movement != Vector2.zero && blueSprites != null && blueSprites.Length > 0)
         {
@@ -104,13 +114,13 @@ public class PlayerController : MonoBehaviour
                 spriteRenderer.sprite = blueSprites[currentSpriteIndex];
             }
         }
-        
+
         // Handle sprite flipping
         if (horizontal != 0)
         {
             spriteRenderer.flipX = horizontal < 0;
         }
-        
+
         // Record current position and state
         positionHistory.Add(new CharacterState(
             transform.position,
@@ -118,38 +128,38 @@ public class PlayerController : MonoBehaviour
             currentSpriteIndex,
             Time.time
         ));
-        
+
         UpdateGhost();
         CleanHistory();
-        
+
         // Only check collision after grace period
         if (Time.time - gameStartTime > graceTime)
         {
             CheckCollision();
         }
     }
-    
+
     void UpdateGhost()
     {
-        if (ghostCharacter == null || positionHistory.Count == 0 || redSprites == null || redSprites.Length == 0) 
+        if (ghostCharacter == null || positionHistory.Count == 0 || redSprites == null || redSprites.Length == 0)
             return;
-        
+
         float targetTime = Time.time - delayTime;
-        
+
         for (int i = 0; i < positionHistory.Count; i++)
         {
             if (positionHistory[i].TimeStamp >= targetTime)
             {
                 ghostCharacter.transform.position = positionHistory[i].Position;
                 ghostSprite.flipX = positionHistory[i].IsFacingLeft;
-                
+
                 int ghostSpriteIndex = positionHistory[i].SpriteIndex % redSprites.Length;
                 ghostSprite.sprite = redSprites[ghostSpriteIndex];
                 break;
             }
         }
     }
-    
+
     void CleanHistory()
     {
         float removeBeforeTime = Time.time - delayTime - 1f;
@@ -164,6 +174,7 @@ public class PlayerController : MonoBehaviour
         float distance = Vector2.Distance(transform.position, ghostCharacter.transform.position);
         if (distance < 0.5f) // Adjust this value based on your sprite sizes
         {
+            source.PlayOneShot(clip);
             ShowDialogue();
         }
     }

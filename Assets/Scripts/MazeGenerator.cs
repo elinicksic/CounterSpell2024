@@ -12,14 +12,19 @@ public class MazeGenerator : MonoBehaviour
 
     public int spawnSize = 5;
 
+    public int numCoins = 100;
+
     private int[,] mazeGrid; // 0 = empty, 1 = wall
     private Vector2Int spawnCenter;
+
+    public GameObject coinPrefab;
 
     void Start()
     {
         GenerateMaze();
         GenerateSpawn();
         DrawMaze();
+        GenerateCoins();
         SpawnPlayer();
     }
 
@@ -83,6 +88,25 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
+    void GenerateCoins()
+    {
+        for (int i = 0; i < numCoins; i++)
+        {
+            while (true)
+            {
+                int x = Random.Range(0, 127);
+                int y = Random.Range(0, 127);
+
+                if (mazeGrid[x, y] == 0)
+                {
+                    print("Made a coin!");
+                    Instantiate(coinPrefab, new Vector3(x * cellSize, y * cellSize, 0), Quaternion.identity, transform);
+                    break;
+                }
+            }
+        }
+    }
+
     void AddFrontiers(Vector2Int cell, List<Vector2Int> frontier)
     {
         foreach (Vector2Int dir in new Vector2Int[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right })
@@ -134,4 +158,10 @@ public class MazeGenerator : MonoBehaviour
             }
         }
     }
+
+    public int[,] getMazeGrid()
+    {
+        return mazeGrid;
+    } // 0 = empty, 1 = wall
+
 }
